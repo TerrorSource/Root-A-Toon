@@ -11,14 +11,14 @@ Next, make sure tcpdump is installed: ```sudo apt install tcpdump```
 
 ## Rooting test run
 
-To start a rooting test run which does not modify the Toon yet you can issue ```sudo ./root-toon.sh```
+To start a rooting test run which does not modify the Toon yet you can issue ```sudo bash root-toon.sh```
 This will initiate a qt-gui restart if the root access is succesfull. 
 
 ## Rooting with payload
 
 The payload file contains the script which is run when the main script has root access. The payload script in the repository will block VPN, edit firewall, change password to 'toon', install dropbear (SSH access) and finally run a update-script with -f option to finish a complete rooted toon. But you can create your own payload if you like.
 
-To initiate a Toon root with payload initiate the script with ```sudo ./root-toon.sh payload```
+To initiate a Toon root with payload initiate the script with ```sudo bash root-toon.sh payload```
 
 ## How is root access possible?
 The script intercepts Toon traffic as it is trying to create a VPN connection towards the Toon servicecenter. First it starts blocking port 443 which results in blocking this VPN access (and also other traffic, but that is not a problem during rooting). Next, the Toon will try to access the servicecenter (from 172.16.0.0/12 address space) over the normal network port (wlan0 interface on the Toon) because there is no more-specific route over a (non existing) VPN connection anymore. The script will see this traffic (using tcpdump) and will store the IP address for the servicecenter which the Toon wants to talk to.
