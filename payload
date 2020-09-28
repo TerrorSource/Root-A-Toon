@@ -1,0 +1,28 @@
+#!/bin/sh
+/qmf/bin/bxt -d :happ_usermsg -s Notification -n CreateNotification  -a type -v task -a subType -v notify -a text -v "Rooting your toon - please wait" 2>/dev/null >/dev/null
+echo "Rooting your toon" > /qmf/www/rsrc/log
+echo "Patching firewall" >> /qmf/www/rsrc/log
+sed -i 's/^#-A/-A/' /etc/default/iptables.conf 2>&1 >> /qmf/www/rsrc/log
+echo "Disabling VPN" >> /qmf/www/rsrc/log
+sed -i 's~ovpn:235~#ovpn:235~g' /etc/inittab 2>&1 >> /qmf/www/rsrc/log
+#restart init (to disable openvpn)
+init q
+if grep -q nxt /etc/opkg/arch.conf 2>/dev/null
+then
+	echo "Detected NXT device, installing dropbear and setting password"
+	wget http://qutility.nl/dropbear_2014.66-r0_cortexa9hf-vfp-neon.ipk -O /tmp/dropbear_2014.66-r0_cortexa9hf-vfp-neon.ipk >> /qmf/www/rsrc/log
+	opkg install /tmp/dropbear_2014.66-r0_cortexa9hf-vfp-neon.ipk >> /qmf/www/rsrc/log
+	sed -i 's/root:DISABLED/root:FTR0zlZvsHEF2/' /etc/shadow
+else
+	echo "Detected QB2 device, installing dropbear and setting password" >> /qmf/www/rsrc/log
+	opkg install --nodeps http://qutility.nl/dropbear_2015.71-r0_qb2.ipk >> /qmf/www/rsrc/log 
+	sed -i 's/root:DISABLED/root:FTR0zlZvsHEF2/' /etc/passwd
+fi
+/etc/init.d/iptables restart >> /qmf/www/rsrc/log
+/etc/init.d/dropbear start >> /qmf/www/rsrc/log
+#get update script
+curl -Nks https://raw.githubusercontent.com/ToonSoftwareCollective/update-rooted/master/update-rooted.sh -o /root/update-rooted.sh
+#run update script fixes
+sh /root/update-rooted.sh -f >> /qmf/www/rsrc/log
+killall -9 qt-gui
+sync
